@@ -13,6 +13,4 @@
 - If the server is not running, the app will fall back to local mode using preloaded example plants stored in `src/localPlantData.json`.
 - Images for local mode are located in `public/local-images/`.
 
-You can continue developing all features using local mode — no server connection required.
-
 ---
