@@ -1,10 +1,10 @@
 # Floral Guardian
 
 ## Installation:
-Run 'npm install' to install dependencies.
+Kör 'npm install' för att installera modulerna.
 
-## Run
-Run 'npm start' to start the app. Access the app by visiting localhost:3000 in a browser.
+## Användning
+Kör 'npm start' för att starta appen. Besök localhost:3000 i en browser för att använda appen.
 
 ---
 
