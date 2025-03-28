@@ -1,5 +1,5 @@
 # Floral Guardian
 
-1. Kör 'npm install' för att installera modulerna.
-2. Starta en terminal i \server och kör 'node server.js'. 
-3. Kör 'npm start' för att starta appen. Besök localhost:3000 i en browser för att använda appen.
+1. Run 'npm install' to install the modules.
+2. Start a terminal in \server and run 'node server.js'.
+3. Run 'npm start', and visit localhost:3000 in a browser to use the app.
