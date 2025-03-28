@@ -1,0 +1,38 @@
+[
+  {
+    "alias": "mentha spicata",
+    "display_pid": "Mentha spicata",
+    "category": "Labiatae, Mentha",
+    "max_light_mmol": 5000,
+    "min_light_mmol": 3500,
+    "max_light_lux": 50000,
+    "min_light_lux": 3700,
+    "max_temp": 35,
+    "min_temp": 5,
+    "max_env_humid": 80,
+    "min_env_humid": 30,
+    "max_soil_moist": 60,
+    "min_soil_moist": 15,
+    "max_soil_ec": 2000,
+    "min_soil_ec": 350,
+    "image_url": "local-images/mentha_spicata.jpg"
+  },
+  {
+    "alias": "solanum lycopersicum",
+    "display_pid": "Solanum lycopersicum",
+    "category": "Solanaceae",
+    "max_light_mmol": 6000,
+    "min_light_mmol": 4000,
+    "max_light_lux": 60000,
+    "min_light_lux": 4000,
+    "max_temp": 30,
+    "min_temp": 10,
+    "max_env_humid": 85,
+    "min_env_humid": 35,
+    "max_soil_moist": 70,
+    "min_soil_moist": 20,
+    "max_soil_ec": 2100,
+    "min_soil_ec": 400,
+    "image_url": "local-images/solanum_lycopersicum.jpg"
+  }
+]
