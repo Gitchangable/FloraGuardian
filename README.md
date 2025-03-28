@@ -9,7 +9,7 @@
 
 ## Notes
 
-- The `/server` folder is not included in this repository because it contains personal API credentials.
+- The `/server` folder is not included in this repository because it contains personal credentials.
 - If the server is not running, the app will fall back to local mode using preloaded example plants stored in `src/localPlantData.json`.
 - Images for local mode are located in `public/local-images/`.
 
