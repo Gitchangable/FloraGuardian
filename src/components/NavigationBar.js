@@ -3,7 +3,7 @@ import React from 'react';
 export default function NavigationBar({ currentTab, setCurrentTab }) {
   return (
     <div className="nav-bar">
-      <div className="nav-title">FloraGuardian</div>
+      <div className="nav-title">Floral Guardian</div>
       <div className="nav-links">
         <button className={`nav-btn ${currentTab === 'monitor' ? 'active' : ''}`} onClick={() => setCurrentTab('monitor')}>
           Monitor
