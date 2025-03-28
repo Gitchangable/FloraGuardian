@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import dataService from './DataService';
 
 export default function NotificationPanel() {
   const [alerts, setAlerts] = useState([]);
