@@ -1,87 +1,118 @@
 # Floral Guardian
 
+Floral Guardian is an application designed to manage plant devices and provide accurate, real-time growth data. This repository contains the core application code, while server credentials and sensitive files are kept private.
+
+---
+
 ## Setup Instructions
 
-1. Run `npm install` in the root project folder to install dependencies.
-2. (Optional) Start a terminal in `/server` and run `node server.js` to enable API-backed plant data.
-3. Run `npm start` to launch the app.
-4. Open your browser and go to `http://localhost:3000`.
+1. Install Dependencies:  
+   Navigate to the root folder and run:
+   ```bash
+   npm install
+   ```
 
-## Notes
+2. (Optional) Start the API Server:  
+   To enable API-backed plant data, open a terminal in the `/server` folder and run:
+   ```bash
+   node server.js
+   ```
 
-- The `/server` folder is not included in this repository because it contains personal credentials.
-- If the server is not running, the app will fall back to local mode using preloaded example plants stored in `src/localPlantData.json`.
-- Images for local mode are located in `public/local-images/`.
+3. Launch the Application:  
+   Run the following command to start the app:
+   ```bash
+   npm start
+   ```
 
-## Theoretical use
+4. Access the Application:  
+   Open your browser and go to [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Important Notes
+
+- Server Folder:  
+  The `/server` folder is excluded from this repository due to sensitive credentials.
+  
+- Fallback Mode:  
+  If the server is not running, the app will automatically switch to local mode using preloaded example plants from `src/localPlantData.json`.
+  
+- Local Images:  
+  When operating in local mode, images are sourced from `public/local-images/`.
+
+---
+
+## Theoretical Workflow
 
 ### Step 1: User Account Setup
 
-Abstract:  
-Users create an account on the system to manage and pair their plant devices securely.
+- Abstract:  
+  Users create an account to securely manage and pair their plant devices.
 
-Technical:  
-- Backend: Users sign up with credentials (e.g., email, password) on your website or mobile app.  
-- Database: Account details are stored securely in your user management database.  
-- Security: Authentication tokens are issued for future requests.  
+- Technical Details:  
+  - Backend: Users register using their email and password via the website or mobile app.
+  - Database: Account details are stored securely in a dedicated user management database.
+  - Security: Authentication tokens are generated for subsequent requests.
 
 ---
 
 ### Step 2: Device Boot and Secure Registration
 
-Abstract:  
-The plant's Raspberry Pi boots up and securely registers itself with the backend via the proxy server, receiving a temporary pairing token.
+- Abstract:  
+  Upon booting, the Raspberry Pi registers itself with the backend via a secure proxy server and receives a temporary pairing token.
 
-Technical:  
-- Device Registration: On boot, the Raspberry Pi contacts the secure proxy server (using pre-installed credentials) to register its unique hardware ID.  
-- Pairing Token: The proxy server generates a short-lived, one-time pairing token (or QR code) and associates it with the device’s ID.  
-- Firestore Setup: The proxy sets up the device’s document in Firestore with appropriate read/write permissions (restricted to backend operations). 
+- Technical Details:  
+  - Device Registration: The Raspberry Pi sends its unique hardware ID to the secure proxy server using pre-installed credentials.
+  - Pairing Token: A one-time, short-lived pairing token (or QR code) is generated and linked to the device’s ID.
+  - Firestore Setup: The proxy server creates a device document in Firestore with restricted read/write permissions.
 
 ---
 
 ### Step 3: Device Pairing with User Account
 
-Abstract:  
-The user securely pairs the registered device to their account using the pairing token provided by the Raspberry Pi.
+- Abstract:  
+  The user pairs the registered device with their account using the provided pairing token.
 
-Technical:  
-- Pairing Process: The user logs into the website or app and is prompted to enter the pairing token (or scan the QR code) displayed by the Raspberry Pi.  
-- Verification: The proxy server validates the token and binds the device’s Firestore document to the user’s account.  
-- Access Control: Post-pairing, only the paired user and the secure proxy server can modify the device’s settings in Firestore.  
+- Technical Details:  
+  - Pairing Process: The user logs into the website/app and inputs the pairing token (or scans the QR code) displayed by the Raspberry Pi.
+  - Verification: The proxy server validates the token and links the device’s Firestore document with the user’s account.
+  - Access Control: After pairing, only the user and the secure proxy server can modify the device’s settings in Firestore.
 
 ---
 
-### Step 4: Plant Type Selection and Retrieval of Growth Requirements
+### Step 4: Plant Type Selection and Growth Requirements Retrieval
 
-Abstract:  
-Once the device is paired, the user selects the plant type, and the system retrieves validated growth requirements from a backend source.
+- Abstract:  
+  Once paired, the user selects a plant type, and the system retrieves the appropriate growth requirements from a trusted backend source.
 
-Technical:  
-- User Selection: The website/app presents a list of plant types.  
-- Data Retrieval: When a plant type is selected, the proxy server fetches or references cached, validated growth condition data (e.g., temperature, humidity, light) from an internal database or trusted API.  
-- Firestore Update: The proxy server writes the growth requirements to the device’s Firestore document, ensuring only validated data is used.  
+- Technical Details:  
+  - User Selection: The website/app presents a list of plant types.
+  - Data Retrieval: Upon selection, the proxy server fetches or references cached, validated growth condition data (e.g., temperature, humidity, light) from an internal database or trusted API.
+  - Firestore Update: The proxy server updates the device’s Firestore document with these verified growth requirements.
 
 ---
 
 ### Step 5: Device Operation & Sensor Data Upload
 
-Abstract:  
-The Raspberry Pi continuously monitors sensor data and adjusts environmental parameters according to the growth requirements, while regularly uploading status updates to Firestore.
+- Abstract:  
+  The Raspberry Pi continuously monitors sensor data, adjusts environmental conditions based on growth requirements, and uploads updates to Firestore.
 
-Technical:  
-- Sensor Management: The Raspberry Pi reads temperature, humidity, soil moisture, and light levels using connected sensors.  
-- Actuation: Based on the growth requirements, it adjusts actuators (e.g., heaters, humidifiers, watering systems).  
-- Data Upload: The device writes sensor readings and a heartbeat timestamp to its Firestore document, ensuring the data includes an “updated at” field for freshness checks.  
-- Offline Handling: If the Pi goes offline, the system marks its status, alerting users that data may be outdated.  
+- Technical Details:  
+  - Sensor Management: The Raspberry Pi reads data from connected sensors (temperature, humidity, soil moisture, light).
+  - Actuation: It adjusts connected actuators (heaters, humidifiers, watering systems) based on the plant’s requirements.
+  - Data Upload: Sensor readings and a timestamp are regularly written to the device’s Firestore document.
+  - Offline Handling: In case of connectivity issues, the system flags the device status and alerts the user.
 
 ---
 
 ### Step 6: Monitoring, Dashboard, and Notifications
 
-Abstract:  
-Users can monitor real-time sensor data and receive alerts if any conditions deviate from the optimal range, ensuring proactive plant care.
+- Abstract:  
+  Users can monitor real-time sensor data and receive alerts for any deviations from optimal plant conditions.
 
-Technical:  
-- Dashboard: The website/app displays current sensor data, including timestamps for the last update.  
-- Notifications: The proxy server or app logic monitors sensor thresholds and can trigger alerts (e.g., push notifications, emails) if conditions fall outside safe ranges.  
-- Data Integrity: The system includes safeguards to prevent stale or incorrect data from misleading the user.  
+- Technical Details:  
+  - Dashboard: The website/app displays current sensor data with timestamps for the last update.
+  - Notifications: Alerts (e.g., push notifications, emails) are triggered if sensor readings deviate from the established thresholds.
+  - Data Integrity: Safeguards are in place to ensure data remains current and accurate, preventing user misinterpretation.
+
+---
