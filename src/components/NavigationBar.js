@@ -1,6 +1,19 @@
 import React from 'react';
 
-export default function NavigationBar({ currentTab, setCurrentTab }) {
+export default function NavigationBar({ currentTab, setCurrentTab, isAuthenticated }) {
+  if (!isAuthenticated) {
+    return (
+      <div className="nav-bar">
+        <div className="nav-title">Floral Guardian</div>
+        <div className="nav-links">
+          <button className={`nav-btn ${currentTab === 'login' ? 'active' : ''}`} onClick={() => setCurrentTab('login')}>
+            Log in
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="nav-bar">
       <div className="nav-title">Floral Guardian</div>
