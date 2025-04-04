@@ -1,12 +1,15 @@
 import React from 'react';
 
-export default function NavigationBar({ currentTab, setCurrentTab, isAuthenticated }) {
+export default function NavigationBar({ currentTab, setCurrentTab, isAuthenticated, onLogin, onLogout }) {
   if (!isAuthenticated) {
     return (
       <div className="nav-bar">
         <div className="nav-title">Floral Guardian</div>
         <div className="nav-links">
-          <button className={`nav-btn ${currentTab === 'login' ? 'active' : ''}`} onClick={() => setCurrentTab('login')}>
+          <button 
+            className={`nav-btn ${currentTab === 'login' ? 'active' : ''}`} 
+            onClick={onLogin}
+          >
             Log in
           </button>
         </div>
@@ -32,6 +35,9 @@ export default function NavigationBar({ currentTab, setCurrentTab, isAuthenticat
         </button>
         <button className={`nav-btn ${currentTab === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentTab('notifications')}>
           Alerts
+        </button>
+        <button className="nav-btn logout-btn" onClick={onLogout}>
+          Logout
         </button>
       </div>
     </div>

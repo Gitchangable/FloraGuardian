@@ -1,13 +1,5 @@
-// src/components/DataService.js
 import localPlantData from '../localPlantData.json';
 
-/**
- * DataService
- * - Maintains an array of plants.
- * - Randomly updates each plant’s sensor data every second.
- * - Checks for backend proxy availability at startup.
- * - In local mode, uses a local JSON for plant data instead of contacting the proxy.
- */
 class DataService {
   constructor() {
     this.plants = [];
@@ -80,9 +72,65 @@ class DataService {
     return JSON.parse(JSON.stringify(this.plants));
   }
 
-  // Adds a new plant by first checking if the proxy is available.
-  // If yes, it fetches plant details from the proxy.
-  // Otherwise, it falls back to localPlantData.
+  // -----------------------
+  // AUTH METHODS
+  // -----------------------
+  async login({ email, password }) {
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        // 401 if credentials are invalid, etc.
+        const errorData = await response.json();
+        return { success: false, errorMessage: errorData.message || 'Login failed' };
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        // Possibly store a token or user info in localStorage/cookies if needed
+        return { success: true };
+      } else {
+        return { success: false, errorMessage: data.message || 'Login failed' };
+      }
+    } catch (error) {
+      console.error('Error calling /api/login:', error);
+      return { success: false, errorMessage: 'Server unreachable. Please try again later.' };
+    }
+  }
+
+  async signup({ email, password }) {
+    try {
+      const response = await fetch('http://localhost:5000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!response.ok) {
+        // Could be 400 if user already exists
+        const errorData = await response.json();
+        return { success: false, errorMessage: errorData.message || 'Sign up failed' };
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        return { success: true };
+      } else {
+        return { success: false, errorMessage: data.message || 'Sign up failed' };
+      }
+    } catch (error) {
+      console.error('Error calling /api/signup:', error);
+      return { success: false, errorMessage: 'Server unreachable. Please try again later.' };
+    }
+  }
+
+  // -----------------------
+  // PLANT METHODS
+  // -----------------------
   async addPlant({ alias, nickname }) {
     let detail;
     if (this.useLocalMode) {
@@ -114,7 +162,6 @@ class DataService {
       }
     }
 
-    // Construct the new plant object.
     const newPlant = {
       id: Date.now(),
       name: nickname || detail.display_pid,
