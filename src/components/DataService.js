@@ -5,14 +5,19 @@ class DataService {
     this.plants = [];
     this.listeners = [];
     this.useLocalMode = false;
+    this.currentUserId = null;
 
-    // Check for proxy availability when the service is created.
     this.checkProxyAvailability();
 
-    // Start sensor data updates.
     this.interval = setInterval(() => {
       this.updateAllPlantsSensors();
     }, 1000);
+
+    this.syncInterval = setInterval(() => {
+      if (this.currentUserId) {
+        this.fetchUserPlants();
+      }
+    }, 10000);
   }
 
   async checkProxyAvailability() {
@@ -84,14 +89,15 @@ class DataService {
       });
 
       if (!response.ok) {
-        // 401 if credentials are invalid, etc.
+        // 401 if credentials are invalid
         const errorData = await response.json();
         return { success: false, errorMessage: errorData.message || 'Login failed' };
       }
 
       const data = await response.json();
       if (data.success) {
-        // Possibly store a token or user info in localStorage/cookies if needed
+        this.currentUserId = data.uid;
+        console.log("User logged in:", this.currentUserId);
         return { success: true };
       } else {
         return { success: false, errorMessage: data.message || 'Login failed' };
@@ -118,6 +124,8 @@ class DataService {
 
       const data = await response.json();
       if (data.success) {
+        this.currentUserId = data.uid;
+        console.log("User signed up:", this.currentUserId);
         return { success: true };
       } else {
         return { success: false, errorMessage: data.message || 'Sign up failed' };
@@ -161,7 +169,7 @@ class DataService {
         }
       }
     }
-
+  
     const newPlant = {
       id: Date.now(),
       name: nickname || detail.display_pid,
@@ -190,14 +198,75 @@ class DataService {
         light: 300,
       },
     };
-
-    this.plants.push(newPlant);
-    this.notifyAll();
+  
+    if (this.currentUserId) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newPlant),
+        });
+  
+        const result = await response.json();
+        if (!result.success) {
+          console.warn("Failed to save plant to Firestore:", result.message);
+        } else {
+          console.log("Plant saved to Firestore:", newPlant.name);
+        }
+      } catch (err) {
+        console.error("Error saving plant to Firestore:", err);
+      }
+    }
+  
+    await this.fetchUserPlants();
     return newPlant;
+  }  
+
+  async removePlant(id) {
+    if (this.currentUserId) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}/${id}`, {
+          method: 'DELETE',
+        });
+        const result = await response.json();
+        if (!result.success) {
+          console.warn("Failed to delete plant from Firestore:", result.message);
+        } else {
+          console.log("Plant deleted from Firestore:", id);
+        }
+      } catch (err) {
+        console.error("Error deleting plant from Firestore:", err);
+      }
+    }
+    
+    await this.fetchUserPlants();
+  }  
+
+  async fetchUserPlants() {
+    if (!this.currentUserId) {
+      console.warn("No user ID set. Cannot fetch plants.");
+      return;
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}`);
+      const data = await response.json();
+  
+      if (data.success) {
+        this.plants = data.plants;
+        this.notifyAll();
+        console.log("Fetched plants from Firestore:", this.plants);
+      } else {
+        console.warn("Failed to fetch user plants:", data.message);
+      }
+    } catch (error) {
+      console.error("Error fetching user plants:", error);
+    }
   }
 
   destroy() {
     clearInterval(this.interval);
+    clearInterval(this.syncInterval);
     this.listeners = [];
   }
 }

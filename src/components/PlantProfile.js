@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import dataService from './DataService';
+import { useNotification } from './NotificationContext';
 
 export default function PlantProfile() {
   const [plants, setPlants] = useState([]);
   const [alias, setAlias] = useState('');
   const [nickname, setNickname] = useState('');
-  // Store image sizes per plant (in pixels)
   const [imageSizes, setImageSizes] = useState({});
+  const { addNotification } = useNotification();
 
   useEffect(() => {
     const handleUpdate = (allPlants) => {
       setPlants(allPlants);
-      // Ensure each plant has an image size (default to 200px)
       setImageSizes((prev) => {
         const newSizes = { ...prev };
         allPlants.forEach((p) => {
@@ -27,21 +27,19 @@ export default function PlantProfile() {
   }, []);
 
   const addPlant = async () => {
-    if (!alias) return alert('Please enter a plant alias (e.g., mentha spicata).');
+    if (!alias) return addNotification({ type: 'warning', message: 'Please enter a scientific name'});
     try {
       await dataService.addPlant({ alias: alias.trim(), nickname: nickname.trim() });
       setAlias('');
       setNickname('');
     } catch (err) {
-      alert(`Error adding plant: ${err.message}`);
+      addNotification({ type: 'error', message: `Error adding plant: ${err.message}`});
     }
   };
 
-  const removePlant = (id) => {
-    // Remove plant from dataService and notify listeners.
-    dataService.plants = dataService.plants.filter((p) => p.id !== id);
-    dataService.notifyAll();
-  };
+  const removePlant = async (id) => {
+    await dataService.removePlant(id);
+  };  
 
   const handleSizeChange = (id, newSize) => {
     setImageSizes((prev) => ({ ...prev, [id]: newSize }));

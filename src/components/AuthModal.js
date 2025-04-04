@@ -1,29 +1,28 @@
 import React, { useState } from 'react';
 import Modal from './Modal';
 import dataService from '../components/DataService';
+import { useNotification } from './NotificationContext';
 
 export default function AuthModal({ onClose, onAuth }) {
-  const [isLogin, setIsLogin] = useState(true); // Toggle between login and signup
+  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const { addNotification } = useNotification();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Basic field checks
     if (!email || !password || (!isLogin && !confirmPassword)) {
-      alert('Please fill in all fields.');
+      addNotification({ type: 'warning', message: 'Please fill in all fields.' });
       return;
     }
-    // Password match check on Sign Up
     if (!isLogin && password !== confirmPassword) {
-      alert('Passwords do not match.');
+      addNotification({ type: 'warning', message: 'Passwords do not match.' });
       return;
     }
 
     try {
-      // Call DataService methods depending on the mode:
       let response;
       if (isLogin) {
         response = await dataService.login({ email, password });
@@ -31,18 +30,17 @@ export default function AuthModal({ onClose, onAuth }) {
         response = await dataService.signup({ email, password });
       }
 
-      // Handle the response returned by DataService
       if (response.success) {
-        alert(isLogin ? 'Logged in successfully!' : 'Signed up successfully!');
-        onAuth({ email });
+        addNotification({ type: 'success', message: isLogin ? 'Logged in successfully!' : 'Signed up successfully!' });
+        await dataService.fetchUserPlants();
+        onAuth({ email, uid: dataService.currentUserId });
         onClose();
       } else {
-        alert(response.errorMessage || 'An error occurred. Please try again.');
+        addNotification({ type: 'error', message: 'An error occurred. Please try again.'});
       }
     } catch (error) {
-      // Catch any unexpected error from DataService or fetch
       console.error('Unexpected error:', error);
-      alert('Unexpected error, please try again.');
+      addNotification({ type: 'error', message: 'Unexpected error, please try again.'});
     }
   };
 

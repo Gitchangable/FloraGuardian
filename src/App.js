@@ -15,7 +15,6 @@ export default function App() {
   const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleLogin = (userData) => {
-    // In a real application, validate credentials here.
     setIsAuthenticated(true);
     setShowAuthModal(false);
     setCurrentTab('monitor');
@@ -28,7 +27,6 @@ export default function App() {
 
   const renderTab = () => {
     if (!isAuthenticated) {
-      // When not authenticated, show the main menu.
       return <MainMenu />;
     }
     switch (currentTab) {
