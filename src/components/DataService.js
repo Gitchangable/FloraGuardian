@@ -10,8 +10,12 @@ class DataService {
     this.currentUserId = null;
     this.serverStatus = 'unknown'; // 'online' | 'offline'
     this.serverPingToastId = null;
+    this.guestMode = false;
   
-    this.monitorServerConnection();
+    if (!this.guestMode) {
+      this.monitorServerConnection();
+    }
+    
     this.interval = setInterval(() => {
       this.updateAllPlantsSensors();
     }, 1000);
@@ -23,9 +27,24 @@ class DataService {
     }, 10000);
   }
 
+  setGuestMode(isGuest) {
+    this.guestMode = isGuest;
+  
+    if (isGuest) {
+      console.warn('[Guest Mode] Enabled. All server calls are now disabled.');
+      clearInterval(this.connectionInterval);
+      this.serverStatus = 'offline';
+      this.useLocalMode = true;
+      this.notifyAll();
+    } else {
+      this.monitorServerConnection();
+    }
+  }  
+
   monitorServerConnection() {
+    if (this.guestMode) return;
+  
     const pingServer = async () => {
-      // Get the up-to-date global notification functions on every ping
       const { addNotification, updateNotification, removeNotification } = getGlobalNotificationFunctions() || {};
   
       try {
@@ -39,7 +58,7 @@ class DataService {
           if (this.serverPingToastId !== null && typeof updateNotification === 'function' && typeof removeNotification === 'function') {
             updateNotification(this.serverPingToastId, {
               type: 'success',
-              message: 'Connected to server!',
+              message: 'Connected to server.',
             });
   
             setTimeout(() => {
@@ -73,7 +92,7 @@ class DataService {
       }
     };
   
-    pingServer(); // initial ping
+    pingServer();
     this.connectionInterval = setInterval(pingServer, 5000);
   }  
 
@@ -134,10 +153,21 @@ class DataService {
     return JSON.parse(JSON.stringify(this.plants));
   }
 
+  isGuestMode() {
+    return this.guestMode;
+  }
+
+  getServerStatus() {
+    return this.serverStatus;
+  }  
+
   // -----------------------
   // AUTH METHODS
   // -----------------------
   async login({ email, password }) {
+    if (this.guestMode) {
+      return { success: false, errorMessage: 'Login not available in Guest Mode.' };
+    }
     try {
       const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
@@ -165,6 +195,9 @@ class DataService {
   }
 
   async signup({ email, password }) {
+    if (this.guestMode) {
+      return { success: false, errorMessage: 'Signup not available in Guest Mode.' };
+    }
     try {
       const response = await fetch('http://localhost:5000/api/signup', {
         method: 'POST',
@@ -194,7 +227,52 @@ class DataService {
   // -----------------------
   // PLANT METHODS
   // -----------------------
+  buildLocalPlant(detail, nickname = '') {
+    return {
+      id: Date.now(),
+      name: nickname || detail.display_pid,
+      apiData: {
+        officialName: detail.display_pid,
+        alias: detail.alias,
+        category: detail.category,
+        max_light_mmol: detail.max_light_mmol,
+        min_light_mmol: detail.min_light_mmol,
+        max_light_lux: detail.max_light_lux,
+        min_light_lux: detail.min_light_lux,
+        max_temp: detail.max_temp,
+        min_temp: detail.min_temp,
+        max_env_humid: detail.max_env_humid,
+        min_env_humid: detail.min_env_humid,
+        max_soil_moist: detail.max_soil_moist,
+        min_soil_moist: detail.min_soil_moist,
+        max_soil_ec: detail.max_soil_ec,
+        min_soil_ec: detail.min_soil_ec,
+      },
+      photo: detail.image_url || '',
+      sensors: {
+        temp: 22,
+        humidity: 40,
+        soilMoisture: 50,
+        light: 300,
+      },
+    };
+  }
+  
   async addPlant({ alias, nickname }) {
+    if (this.guestMode) {
+      const detail = localPlantData.find(
+        (plant) => plant.alias.toLowerCase() === alias.toLowerCase()
+      );
+      if (!detail) {
+        throw new Error(`Local plant data not found for alias: ${alias}`);
+      }
+    
+      const newPlant = this.buildLocalPlant(detail, nickname);
+      this.plants.push(newPlant);
+      this.notifyAll();
+      return newPlant;
+    }
+    
     let detail;
     if (this.useLocalMode) {
       console.log("Using local mode to fetch plant details.");
@@ -278,6 +356,11 @@ class DataService {
   }  
 
   async removePlant(id) {
+    if (this.guestMode) {
+      this.plants = this.plants.filter(p => p.id !== id);
+      this.notifyAll();
+      return;
+    }
     if (this.currentUserId) {
       try {
         const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}/${id}`, {
@@ -298,6 +381,7 @@ class DataService {
   }  
 
   async fetchUserPlants() {
+    if (this.guestMode) return;
     if (!this.currentUserId) {
       console.warn("No user ID set. Cannot fetch plants.");
       return;
@@ -325,7 +409,29 @@ class DataService {
     clearInterval(this.connectionInterval);
     this.listeners = [];
   }
+
+  reset() {
+    this.destroy();
+    this.plants = [];
+    this.listeners = [];
+    this.guestMode = false;
+    this.useLocalMode = false;
+    this.currentUserId = null;
+    this.serverStatus = 'unknown';
+    this.serverPingToastId = null;
+  
+    console.log('[DataService] Reset complete.');
+  }
+  
+
 }
 
-const dataService = new DataService();
+let dataService = new DataService();
+
+export function resetDataServiceInstance() {
+  dataService.destroy();
+  dataService = new DataService();
+  return dataService;
+}
+
 export default dataService;

@@ -27,15 +27,24 @@ export default function PlantProfile() {
   }, []);
 
   const addPlant = async () => {
-    if (!alias) return addNotification({ type: 'warning', message: 'Please enter a scientific name'});
+    if (!alias) return addNotification({ type: 'warning', message: 'Please enter a scientific name.' });
+  
+    const isGuest = dataService.isGuestMode();
+    const serverOnline = dataService.getServerStatus() === 'online';
+  
+    if (!isGuest && !serverOnline) {
+      addNotification({ type: 'warning', message: 'Cannot add plant while offline. Please reconnect.' });
+      return;
+    }
+  
     try {
       await dataService.addPlant({ alias: alias.trim(), nickname: nickname.trim() });
       setAlias('');
       setNickname('');
     } catch (err) {
-      addNotification({ type: 'error', message: `Error adding plant: ${err.message}`});
+      addNotification({ type: 'error', message: `Error adding plant: ${err.message}` });
     }
-  };
+  };  
 
   const removePlant = async (id) => {
     await dataService.removePlant(id);
@@ -89,7 +98,11 @@ export default function PlantProfile() {
                   </p>
                 </div>
               )}
-              <button className="btn remove-btn" onClick={() => removePlant(p.id)}>
+              <button
+              className="btn remove-btn"
+              onClick={() => removePlant(p.id)}
+              disabled={!dataService.isGuestMode() && dataService.getServerStatus() !== 'online'}
+              >
                 Remove Plant
               </button>
             </div>

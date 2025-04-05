@@ -31,7 +31,7 @@ export default function AuthModal({ onClose, onAuth }) {
       }
 
       if (response.success) {
-        addNotification({ type: 'success', message: isLogin ? 'Logged in successfully!' : 'Signed up successfully!' });
+        addNotification({ type: 'info', message: isLogin ? 'Logged in successfully.' : 'Signed up successfully.' });
         await dataService.fetchUserPlants();
         onAuth({ email, uid: dataService.currentUserId });
         onClose();
@@ -102,6 +102,20 @@ export default function AuthModal({ onClose, onAuth }) {
             </p>
           )}
         </div>
+        <div className="guest-login-section">
+        <hr />
+        <p style={{ textAlign: 'center', margin: '10px 0' }}>or</p>
+        <button
+          type="button"
+          className="guest-login-btn"
+          onClick={() => {
+            onAuth({ mode: 'guest' });
+            onClose();
+          }}
+        >
+          Continue as Guest
+        </button>
+      </div>
         <button onClick={onClose} className="modal-close-btn">
           Close
         </button>
