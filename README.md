@@ -1,118 +1,136 @@
-# Floral Guardian
-
-Floral Guardian is an application designed to manage plant devices and provide accurate, real-time growth data. This repository contains the core application code, while server credentials and sensitive files are kept private.
+Below is a draft README that follows a structured format for the repository:
 
 ---
 
-## Setup Instructions
+# Floral Guardian
 
-1. Install Dependencies:  
-   Navigate to the root folder and run:
+Floral Guardian is a web application designed to monitor and manage your indoor garden. It features real-time sensor data updates, user authentication (including Firebase integration), and a robust offline/guest mode for development and testing. The application uses a secure server for handling cloud-based operations while maintaining a clean separation of concerns with a React front-end and a Node/Express back-end.
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Guest Mode & Offline Support](#guest-mode--offline-support)
+- [Development Phases](#development-phases)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Features
+
+- **Real-Time Sensor Monitoring:**  
+  Plants update every second with simulated sensor data (temperature, humidity, soil moisture, and light).
+
+- **User Authentication:**  
+  - Email/password login and signup via Firebase.
+  - Secure server endpoints for authentication and plant data operations.
+  
+- **Cloud Sync:**  
+  Plant data is persisted to a Firestore database for authenticated users.
+
+- **Guest Mode:**  
+  An offline-only experience for testing and development with no server communication.
+
+- **Server Connectivity Monitoring:**  
+  The app pings the server every 5 seconds to display dynamic connection status notifications and automatically switch to a local mode if the server is unreachable.
+
+- **Responsive UI & Notifications:**  
+  Non-intrusive toast notifications for success, warnings, and errors. Persistent banners indicate offline or guest mode.
+
+---
+
+## Architecture
+
+The application is divided into two separate projects:
+
+### Front-End (React)
+- **Components:**
+  - **AuthModal:** Handles login, signup, and guest login.
+  - **DataService:** Acts as a client-side cache and mediator for plant data, server sync, and sensor updates.
+  - **PlantProfile, SensorPanel, ControlPanel, AnalyticsPanel, NotificationPanel:** Provide the UI for managing and visualizing plant data.
+  - **NotificationContext:** Global context for non-blocking toast notifications.
+- **State Management:**  
+  Uses local state and context for managing authentication status, guest mode, and server connection status.
+
+### Back-End (Node/Express)
+- **Server:**  
+  Provides endpoints for:
+  - Authentication (`/api/login`, `/api/signup`)
+  - Plant data retrieval and manipulation (`/api/plantByAlias`, `/api/userPlants/:uid`, DELETE `/api/userPlants/:uid/:plantId`)
+  - A simple ping endpoint (`/api/ping`) to monitor connectivity.
+- **Firebase Integration:**  
+  - Uses Firebase Admin SDK for secure user creation and Firestore access.
+  - Uses the Firebase REST API for email/password sign-in.
+  
+---
+
+## Installation
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v14+ recommended)
+- [npm](https://www.npmjs.com/) or [yarn](https://yarnpkg.com/)
+
+### Front-End Setup
+
+1. Navigate to the front-end folder:
+   ```bash
+   cd src
+   ```
+2. Install dependencies:
    ```bash
    npm install
    ```
-
-2. (Optional) Start the API Server:  
-   To enable API-backed plant data, open a terminal in the `/server` folder and run:
-   ```bash
-   node server.js
-   ```
-
-3. Launch the Application:  
-   Run the following command to start the app:
+3. Start the React development server:
    ```bash
    npm start
    ```
 
-4. Access the Application:  
-   Open your browser and go to [http://localhost:3000](http://localhost:3000).
+### Back-End Setup
+
+1. Navigate to the server folder:
+   ```bash
+   cd server
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Place your Firebase service key (`firebaseServiceKey.json`) in the server directory.
+4. Start the server:
+   ```bash
+   node server.js
+   ```
 
 ---
 
-## Important Notes
+## Usage
 
-- Server Folder:  
-  The `/server` folder is excluded from this repository due to sensitive credentials.
+1. **Authentication:**
+   - Users can log in or sign up using email/password.
+   - Alternatively, choose **Guest Mode** for an offline experience.
+   
+2. **Managing Plants:**
+   - Authenticated users have their plants synced to Firestore.
+   - Guest users work purely with local data.
+   - Plant sensor data updates automatically, and users can add or remove plants.
+   
+3. **Server Connectivity:**
+   - The app pings the server every 5 seconds.
+   - If the server is unreachable, a persistent error toast and a banner will notify you and switch the app to offline mode.
+   - When the server reconnects, a success toast appears and the banner is removed.
+
+---
+
+## Guest Mode & Offline Support
+
+- **Guest Mode:**  
+  Designed for development and testing. When in Guest Mode, server pings and all communication with the cloud are disabled. Data is stored locally.
   
-- Fallback Mode:  
-  If the server is not running, the app will automatically switch to local mode using preloaded example plants from `src/localPlantData.json`.
-  
-- Local Images:  
-  When operating in local mode, images are sourced from `public/local-images/`.
-
----
-
-## Theoretical Workflow
-
-### Step 1: User Account Setup
-
-- Abstract:  
-  Users create an account to securely manage and pair their plant devices.
-
-- Technical Details:  
-  - Backend: Users register using their email and password via the website or mobile app.
-  - Database: Account details are stored securely in a dedicated user management database.
-  - Security: Authentication tokens are generated for subsequent requests.
-
----
-
-### Step 2: Device Boot and Secure Registration
-
-- Abstract:  
-  Upon booting, the Raspberry Pi registers itself with the backend via a secure proxy server and receives a temporary pairing token.
-
-- Technical Details:  
-  - Device Registration: The Raspberry Pi sends its unique hardware ID to the secure proxy server using pre-installed credentials.
-  - Pairing Token: A one-time, short-lived pairing token (or QR code) is generated and linked to the device’s ID.
-  - Firestore Setup: The proxy server creates a device document in Firestore with restricted read/write permissions.
-
----
-
-### Step 3: Device Pairing with User Account
-
-- Abstract:  
-  The user pairs the registered device with their account using the provided pairing token.
-
-- Technical Details:  
-  - Pairing Process: The user logs into the website/app and inputs the pairing token (or scans the QR code) displayed by the Raspberry Pi.
-  - Verification: The proxy server validates the token and links the device’s Firestore document with the user’s account.
-  - Access Control: After pairing, only the user and the secure proxy server can modify the device’s settings in Firestore.
-
----
-
-### Step 4: Plant Type Selection and Growth Requirements Retrieval
-
-- Abstract:  
-  Once paired, the user selects a plant type, and the system retrieves the appropriate growth requirements from a trusted backend source.
-
-- Technical Details:  
-  - User Selection: The website/app presents a list of plant types.
-  - Data Retrieval: Upon selection, the proxy server fetches or references cached, validated growth condition data (e.g., temperature, humidity, light) from an internal database or trusted API.
-  - Firestore Update: The proxy server updates the device’s Firestore document with these verified growth requirements.
-
----
-
-### Step 5: Device Operation & Sensor Data Upload
-
-- Abstract:  
-  The Raspberry Pi continuously monitors sensor data, adjusts environmental conditions based on growth requirements, and uploads updates to Firestore.
-
-- Technical Details:  
-  - Sensor Management: The Raspberry Pi reads data from connected sensors (temperature, humidity, soil moisture, light).
-  - Actuation: It adjusts connected actuators (heaters, humidifiers, watering systems) based on the plant’s requirements.
-  - Data Upload: Sensor readings and a timestamp are regularly written to the device’s Firestore document.
-  - Offline Handling: In case of connectivity issues, the system flags the device status and alerts the user.
-
----
-
-### Step 6: Monitoring, Dashboard, and Notifications
-
-- Abstract:  
-  Users can monitor real-time sensor data and receive alerts for any deviations from optimal plant conditions.
-
-- Technical Details:  
-  - Dashboard: The website/app displays current sensor data with timestamps for the last update.
-  - Notifications: Alerts (e.g., push notifications, emails) are triggered if sensor readings deviate from the established thresholds.
-  - Data Integrity: Safeguards are in place to ensure data remains current and accurate, preventing user misinterpretation.
-
----
+- **Offline User Mode:**  
+  For authenticated users, if the server becomes unreachable, the app enters read-only mode, disabling add/remove plant operations until the connection is restored.
