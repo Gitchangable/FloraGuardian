@@ -11,9 +11,6 @@ Floral Guardian is a web application designed to monitor and manage your indoor 
 - [Installation](#installation)
 - [Usage](#usage)
 - [Guest Mode & Offline Support](#guest-mode--offline-support)
-- [Development Phases](#development-phases)
-- [Contributing](#contributing)
-- [License](#license)
 
 ---
 
