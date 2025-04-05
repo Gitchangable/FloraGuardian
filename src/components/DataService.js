@@ -1,4 +1,6 @@
+// src/components/DataService.js
 import localPlantData from '../localPlantData.json';
+import { getGlobalNotificationFunctions } from './NotificationContext';
 
 class DataService {
   constructor() {
@@ -6,9 +8,10 @@ class DataService {
     this.listeners = [];
     this.useLocalMode = false;
     this.currentUserId = null;
-
-    this.checkProxyAvailability();
-
+    this.serverStatus = 'unknown'; // 'online' | 'offline'
+    this.serverPingToastId = null;
+  
+    this.monitorServerConnection();
     this.interval = setInterval(() => {
       this.updateAllPlantsSensors();
     }, 1000);
@@ -19,6 +22,60 @@ class DataService {
       }
     }, 10000);
   }
+
+  monitorServerConnection() {
+    const pingServer = async () => {
+      // Get the up-to-date global notification functions on every ping
+      const { addNotification, updateNotification, removeNotification } = getGlobalNotificationFunctions() || {};
+  
+      try {
+        const response = await fetch('http://localhost:5000/api/ping');
+        const isOnline = response.ok;
+  
+        if (isOnline && this.serverStatus !== 'online') {
+          this.serverStatus = 'online';
+          console.log('[Connection] Server is ONLINE');
+  
+          if (this.serverPingToastId !== null && typeof updateNotification === 'function' && typeof removeNotification === 'function') {
+            updateNotification(this.serverPingToastId, {
+              type: 'success',
+              message: 'Connected to server!',
+            });
+  
+            setTimeout(() => {
+              removeNotification(this.serverPingToastId);
+              this.serverPingToastId = null;
+            }, 2000);
+          }
+        }
+  
+        if (isOnline && this.useLocalMode) {
+          this.useLocalMode = false;
+          this.notifyAll();
+        }
+      } catch (err) {
+        if (this.serverStatus !== 'offline') {
+          this.serverStatus = 'offline';
+          console.warn('[Connection] Server is OFFLINE');
+  
+          this.useLocalMode = true;
+          this.notifyAll();
+  
+          if (typeof addNotification === 'function') {
+            this.serverPingToastId = addNotification({
+              id: 'server-connection',
+              persist: true,
+              type: 'error',
+              message: 'Server unreachable, reconnecting...',
+            });
+          }
+        }
+      }
+    };
+  
+    pingServer(); // initial ping
+    this.connectionInterval = setInterval(pingServer, 5000);
+  }  
 
   async checkProxyAvailability() {
     try {
@@ -89,7 +146,6 @@ class DataService {
       });
 
       if (!response.ok) {
-        // 401 if credentials are invalid
         const errorData = await response.json();
         return { success: false, errorMessage: errorData.message || 'Login failed' };
       }
@@ -117,7 +173,6 @@ class DataService {
       });
 
       if (!response.ok) {
-        // Could be 400 if user already exists
         const errorData = await response.json();
         return { success: false, errorMessage: errorData.message || 'Sign up failed' };
       }
@@ -267,6 +322,7 @@ class DataService {
   destroy() {
     clearInterval(this.interval);
     clearInterval(this.syncInterval);
+    clearInterval(this.connectionInterval);
     this.listeners = [];
   }
 }
