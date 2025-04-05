@@ -1,7 +1,3 @@
-Below is a draft README that follows a structured format for the repository:
-
----
-
 # Floral Guardian
 
 Floral Guardian is a web application designed to monitor and manage your indoor garden. It features real-time sensor data updates, user authentication (including Firebase integration), and a robust offline/guest mode for development and testing. The application uses a secure server for handling cloud-based operations while maintaining a clean separation of concerns with a React front-end and a Node/Express back-end.
