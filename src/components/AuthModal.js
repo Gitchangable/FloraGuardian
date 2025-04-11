@@ -10,6 +10,9 @@ export default function AuthModal({ onClose, onAuth }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const { addNotification } = useNotification();
 
+  const [showReset, setShowReset] = useState(false);
+const [resetEmail, setResetEmail] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -44,78 +47,124 @@ export default function AuthModal({ onClose, onAuth }) {
     }
   };
 
+  const handleReset = async (e) => {
+    e.preventDefault();
+    if (!resetEmail) {
+      addNotification({ type: 'warning', message: 'Please enter your email.' });
+      return;
+    }
+  
+    try {
+      const result = await dataService.resetPassword(resetEmail);
+      if (result.success) {
+        addNotification({ type: 'success', message: result.message || 'Reset email sent.' });
+        setShowReset(false);
+        setResetEmail('');
+      } else {
+        addNotification({ type: 'error', message: result.message || 'Failed to send reset email.' });
+      }
+    } catch (err) {
+      addNotification({ type: 'error', message: 'Unexpected error, try again later.' });
+    }
+  };  
+
   return (
     <Modal onClose={onClose}>
       <div className="auth-modal">
-        <h2>{isLogin ? 'Log In' : 'Sign Up'}</h2>
-        <form onSubmit={handleSubmit} className="auth-form">
-          <label className="auth-label">
-            Email:
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="auth-input"
-              required
-            />
-          </label>
-          <label className="auth-label">
-            Password:
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="auth-input"
-              required
-            />
-          </label>
-          {!isLogin && (
-            <label className="auth-label">
-              Confirm Password:
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="auth-input"
-                required
-              />
-            </label>
-          )}
-          <button type="submit" className="auth-submit-btn">
-            {isLogin ? 'Log In' : 'Sign Up'}
-          </button>
-        </form>
-        <div className="auth-toggle">
-          {isLogin ? (
-            <p>
-              Don't have an account?{' '}
-              <button onClick={() => setIsLogin(false)} className="auth-toggle-btn">
-                Sign Up
+        {showReset ? (
+          <>
+            <h2>Reset Password</h2>
+            <form onSubmit={handleReset} className="auth-form">
+              <label className="auth-label">
+                Email:
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  className="auth-input"
+                  required
+                />
+              </label>
+              <button type="submit" className="auth-submit-btn">
+                Send Reset Email
               </button>
-            </p>
-          ) : (
-            <p>
-              Already have an account?{' '}
-              <button onClick={() => setIsLogin(true)} className="auth-toggle-btn">
-                Log In
+            </form>
+            <div className="auth-toggle">
+              <p>
+                <button className="auth-toggle-btn" onClick={() => setShowReset(false)}>
+                  Back to Login
+                </button>
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2>{isLogin ? 'Log In' : 'Sign Up'}</h2>
+            <form onSubmit={handleSubmit} className="auth-form">
+              <label className="auth-label">
+                Email:
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="auth-input"
+                  required
+                />
+              </label>
+              <label className="auth-label">
+                Password:
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="auth-input"
+                  required
+                />
+              </label>
+              {!isLogin && (
+                <label className="auth-label">
+                  Confirm Password:
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="auth-input"
+                    required
+                  />
+                </label>
+              )}
+              <button type="submit" className="auth-submit-btn">
+                {isLogin ? 'Log In' : 'Sign Up'}
               </button>
-            </p>
-          )}
-        </div>
-        <div className="guest-login-section">
-        <hr />
-        <p style={{ textAlign: 'center', margin: '10px 0' }}>or</p>
-        <button
-          type="button"
-          className="guest-login-btn"
-          onClick={() => {
-            onAuth({ mode: 'guest' });
-            onClose();
-          }}
-        >
-          Continue as Guest
-        </button>
-      </div>
+            </form>
+
+            {isLogin && (
+              <div style={{ textAlign: 'center', marginTop: '8px' }}>
+                <button onClick={() => setShowReset(true)} className="auth-toggle-btn">
+                  Forgot Password?
+                </button>
+              </div>
+            )}
+
+            <div className="auth-toggle">
+              {isLogin ? (
+                <p>
+                  Don't have an account?{' '}
+                  <button onClick={() => setIsLogin(false)} className="auth-toggle-btn">
+                    Sign Up
+                  </button>
+                </p>
+              ) : (
+                <p>
+                  Already have an account?{' '}
+                  <button onClick={() => setIsLogin(true)} className="auth-toggle-btn">
+                    Log In
+                  </button>
+                </p>
+              )}
+            </div>
+          </>
+        )}
         <button onClick={onClose} className="modal-close-btn">
           Close
         </button>

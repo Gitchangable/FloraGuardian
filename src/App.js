@@ -54,7 +54,7 @@ export default function App() {
   };  
 
   const handleLogout = () => {
-    resetDataServiceInstance(); // full reset
+    resetDataServiceInstance();
     setIsAuthenticated(false);
     setIsGuest(false);
     setCurrentTab('main');

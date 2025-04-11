@@ -2,6 +2,9 @@
 import localPlantData from '../localPlantData.json';
 import { getGlobalNotificationFunctions } from './NotificationContext';
 
+const URL = "http://192.168.3.239"; // Check if correct
+//const URL = "http://localhost";
+
 class DataService {
   constructor() {
     this.plants = [];
@@ -48,7 +51,7 @@ class DataService {
       const { addNotification, updateNotification, removeNotification } = getGlobalNotificationFunctions() || {};
   
       try {
-        const response = await fetch('http://localhost:5000/api/ping');
+        const response = await fetch(URL + ':5000/api/ping');
         const isOnline = response.ok;
   
         if (isOnline && this.serverStatus !== 'online') {
@@ -98,7 +101,7 @@ class DataService {
 
   async checkProxyAvailability() {
     try {
-      const response = await fetch('http://localhost:5000/api/ping');
+      const response = await fetch(URL + ':5000/api/ping');
       if (response.ok) {
         this.useLocalMode = false;
         console.log("Proxy available, using remote API.");
@@ -169,7 +172,7 @@ class DataService {
       return { success: false, errorMessage: 'Login not available in Guest Mode.' };
     }
     try {
-      const response = await fetch('http://localhost:5000/api/login', {
+      const response = await fetch(URL + ':5000/api/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -199,7 +202,7 @@ class DataService {
       return { success: false, errorMessage: 'Signup not available in Guest Mode.' };
     }
     try {
-      const response = await fetch('http://localhost:5000/api/signup', {
+      const response = await fetch(URL + ':5000/api/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -285,7 +288,7 @@ class DataService {
     } else {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/plantByAlias?alias=${encodeURIComponent(alias)}`
+          URL + `:5000/api/plantByAlias?alias=${encodeURIComponent(alias)}`
         );
         if (!response.ok) {
           throw new Error(`Error fetching plant details: ${response.statusText}`);
@@ -334,7 +337,7 @@ class DataService {
   
     if (this.currentUserId) {
       try {
-        const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}`, {
+        const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(newPlant),
@@ -363,7 +366,7 @@ class DataService {
     }
     if (this.currentUserId) {
       try {
-        const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}/${id}`, {
+        const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}/${id}`, {
           method: 'DELETE',
         });
         const result = await response.json();
@@ -388,7 +391,7 @@ class DataService {
     }
   
     try {
-      const response = await fetch(`http://localhost:5000/api/userPlants/${this.currentUserId}`);
+      const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}`);
       const data = await response.json();
   
       if (data.success) {
@@ -403,10 +406,28 @@ class DataService {
     }
   }
 
+  async resetPassword(email) {
+    try {
+      // or /api/resetPassword if using the Admin approach
+      const response = await fetch('http://localhost:5000/api/resetPassword', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+  
+      const data = await response.json();
+      return data; // { success: true, message: "..."}
+    } catch (error) {
+      console.error('Error calling /api/resetPassword:', error);
+      return { success: false, message: 'Server unreachable.' };
+    }
+  }
+
   destroy() {
     clearInterval(this.interval);
     clearInterval(this.syncInterval);
     clearInterval(this.connectionInterval);
+    this.plants = [];
     this.listeners = [];
   }
 
