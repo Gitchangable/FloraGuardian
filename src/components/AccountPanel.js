@@ -5,14 +5,20 @@ import { useNotification } from './NotificationContext';
 export default function AccountPanel() {
   const { addNotification } = useNotification();
   const uid = dataService.currentUserId;
+  const isGuest = dataService.isGuestMode();
 
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  // IMPORTANT: adjust the base URL if needed
+  // Adjust the base URL
   const BASE_URL = 'http://localhost:5000';
 
   const handleChangeEmail = async () => {
+    if (!newEmail) {
+      addNotification({ type: 'warning', message: 'Please enter a new email address.' });
+      return;
+    }
+
     try {
       const response = await fetch(`${BASE_URL}/api/account/email`, {
         method: 'PUT',
@@ -31,6 +37,11 @@ export default function AccountPanel() {
   };
 
   const handleChangePassword = async () => {
+    if (!newPassword) {
+      addNotification({ type: 'warning', message: 'Please enter a new password.' });
+      return;
+    }
+
     try {
       const response = await fetch(`${BASE_URL}/api/account/password`, {
         method: 'PUT',
@@ -61,6 +72,7 @@ export default function AccountPanel() {
       const result = await response.json();
       if (result.success) {
         addNotification({ type: 'success', message: 'Account deleted successfully.' });
+        // Trigger a logout or redirect action here
       } else {
         addNotification({ type: 'error', message: result.message });
       }
@@ -73,6 +85,12 @@ export default function AccountPanel() {
     <div className="account-container">
       <h2 className="section-title">Account Settings</h2>
 
+      {isGuest && (
+        <div style={{ marginBottom: '20px', color: '#555' }}>
+          You are in guest mode. Account modifications are disabled.
+        </div>
+      )}
+
       <div className="account-section">
         <h3>Change Email</h3>
         <input
@@ -80,8 +98,11 @@ export default function AccountPanel() {
           placeholder="New Email"
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
+          disabled={isGuest}
         />
-        <button onClick={handleChangeEmail}>Update Email</button>
+        <button onClick={handleChangeEmail} disabled={isGuest}>
+          Update Email
+        </button>
       </div>
 
       <div className="account-section">
@@ -91,15 +112,27 @@ export default function AccountPanel() {
           placeholder="New Password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
+          disabled={isGuest}
         />
-        <button onClick={handleChangePassword}>Update Password</button>
+        <button onClick={handleChangePassword} disabled={isGuest}>
+          Update Password
+        </button>
       </div>
 
       <div className="account-section">
         <h3>Delete Account</h3>
-        <button 
-          onClick={handleDeleteAccount} 
-          style={{ backgroundColor: '#f44336', color: '#fff', padding: '10px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        <button
+          onClick={handleDeleteAccount}
+          disabled={isGuest}
+          style={{
+            backgroundColor: '#f44336',
+            color: '#fff',
+            padding: '10px 15px',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isGuest ? 'not-allowed' : 'pointer',
+          }}
+        >
           Delete Account
         </button>
       </div>
