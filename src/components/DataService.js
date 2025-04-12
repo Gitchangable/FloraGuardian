@@ -408,7 +408,6 @@ class DataService {
 
   async resetPassword(email) {
     try {
-      // or /api/resetPassword if using the Admin approach
       const response = await fetch('http://localhost:5000/api/resetPassword', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -416,7 +415,7 @@ class DataService {
       });
   
       const data = await response.json();
-      return data; // { success: true, message: "..."}
+      return data;
     } catch (error) {
       console.error('Error calling /api/resetPassword:', error);
       return { success: false, message: 'Server unreachable.' };

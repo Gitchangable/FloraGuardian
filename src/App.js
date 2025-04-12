@@ -7,6 +7,7 @@ import PlantProfile from './components/PlantProfile';
 import NotificationPanel from './components/NotificationPanel';
 import MainMenu from './components/MainMenu';
 import AuthModal from './components/AuthModal';
+import AccountPanel from './components/AccountPanel';
 import dataService, {resetDataServiceInstance} from './components/DataService';
 import './styles.css';
 
@@ -85,6 +86,8 @@ export default function App() {
         return <PlantProfile />;
       case 'notifications':
         return <NotificationPanel />;
+      case 'account':
+        return <AccountPanel />;
       default:
         return <SensorPanel />;
     }

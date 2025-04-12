@@ -36,6 +36,9 @@ export default function NavigationBar({ currentTab, setCurrentTab, isAuthenticat
         <button className={`nav-btn ${currentTab === 'notifications' ? 'active' : ''}`} onClick={() => setCurrentTab('notifications')}>
           Alerts
         </button>
+        <button className={`nav-btn ${currentTab === 'account' ? 'active' : ''}`} onClick={() => setCurrentTab('account')}>
+          Account
+        </button>
         <button className="nav-btn logout-btn" onClick={onLogout}>
           Logout
         </button>

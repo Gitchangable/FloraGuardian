@@ -162,6 +162,20 @@ const [resetEmail, setResetEmail] = useState('');
                   </button>
                 </p>
               )}
+              <div className="guest-login-section">
+                <hr />
+                <p style={{ textAlign: 'center', margin: '10px 0' }}>or</p>
+                <button
+                  type="button"
+                  className="guest-login-btn"
+                  onClick={() => {
+                    onAuth({ mode: 'guest' });
+                    onClose();
+                  }}
+                >
+                  Continue as Guest
+                </button>
+              </div>
             </div>
           </>
         )}

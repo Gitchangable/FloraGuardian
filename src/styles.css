@@ -730,3 +730,18 @@ body {
   background-color: #ffcc00;
   color: #333;
 }
+
+.account-container {
+  padding: 20px;
+}
+
+.account-section {
+  margin-bottom: 20px;
+}
+
+.account-section input {
+  padding: 8px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
