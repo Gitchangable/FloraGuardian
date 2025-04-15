@@ -2,7 +2,7 @@
 import localPlantData from '../localPlantData.json';
 import { getGlobalNotificationFunctions } from './NotificationContext';
 
-const URL = "http://192.168.3.239"; // Check if correct
+const URL = " 130.229.161.111"; // Check if correct
 //const URL = "http://localhost";
 
 class DataService {
