@@ -97,20 +97,42 @@ class DataService {
     this.connectionInterval = setInterval(pingServer, 5000);
   }
 
-  updateAllPlantsSensors() {
-    this.plants = this.plants.map((p) => {
-      const { temp, humidity, soilMoisture, light } = p.sensors;
-      return {
-        ...p,
-        sensors: {
-          temp: this.randomFluct(temp, 1, 0, 40),
-          humidity: this.randomFluct(humidity, 1, 0, 100),
-          soilMoisture: this.randomFluct(soilMoisture, 2, 0, 100),
-          light: this.randomFluct(light, 10, 0, 1000),
-        },
-      };
-    });
-    this.notifyAll();
+  async updateAllPlantsSensors() {
+    if (this.guestMode || this.serverStatus !== 'online' || !this.currentUserId) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BASE_URL}/api/sensors/${this.currentUserId}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      if (!response.ok) {
+        throw new Error(`Error fetching sensor data: ${response.statusText}`);
+      }
+
+      const json = await response.json();
+      if (!json.success) {
+        throw new Error(json.message || 'Failed to fetch sensor data.');
+      }
+
+      const sensorArray = json.sensors; 
+      console.log(sensorArray);
+      this.plants = this.plants.map((plant) => {
+        const matching = sensorArray.find((s) => s.plantId === plant.id.toString());
+        if (!matching) return plant;
+        return {
+          ...plant,
+          sensors: {
+            ...plant.sensors,
+            ...matching.sensors,
+          },
+        };
+      });
+
+      this.notifyAll();
+    } catch (err) {
+      console.error('Error in updateAllPlantsSensors:', err);
+    }
   }
 
   randomFluct(value, range, min, max) {
