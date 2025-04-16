@@ -2,8 +2,8 @@
 import localPlantData from '../localPlantData.json';
 import { getGlobalNotificationFunctions } from './NotificationContext';
 
-const URL = " 130.229.161.111"; // Check if correct
-//const URL = "http://localhost";
+// Use your ngrok public URL:
+const BASE_URL = "https://supreme-tomcat-heartily.ngrok-free.app";
 
 class DataService {
   constructor() {
@@ -11,10 +11,10 @@ class DataService {
     this.listeners = [];
     this.useLocalMode = false;
     this.currentUserId = null;
-    this.serverStatus = 'unknown'; // 'online' | 'offline'
+    this.serverStatus = 'unknown';
     this.serverPingToastId = null;
     this.guestMode = false;
-  
+
     if (!this.guestMode) {
       this.monitorServerConnection();
     }
@@ -32,7 +32,6 @@ class DataService {
 
   setGuestMode(isGuest) {
     this.guestMode = isGuest;
-  
     if (isGuest) {
       console.warn('[Guest Mode] Enabled. All server calls are now disabled.');
       clearInterval(this.connectionInterval);
@@ -42,35 +41,37 @@ class DataService {
     } else {
       this.monitorServerConnection();
     }
-  }  
+  }
 
   monitorServerConnection() {
     if (this.guestMode) return;
-  
     const pingServer = async () => {
-      const { addNotification, updateNotification, removeNotification } = getGlobalNotificationFunctions() || {};
-  
+      const { addNotification, updateNotification, removeNotification } =
+        getGlobalNotificationFunctions() || {};
+
       try {
-        const response = await fetch(URL + ':5000/api/ping');
+        const response = await fetch(`${BASE_URL}/api/ping`, {
+          headers: { 'ngrok-skip-browser-warning': 'true' }
+        });
         const isOnline = response.ok;
-  
         if (isOnline && this.serverStatus !== 'online') {
           this.serverStatus = 'online';
           console.log('[Connection] Server is ONLINE');
-  
-          if (this.serverPingToastId !== null && typeof updateNotification === 'function' && typeof removeNotification === 'function') {
+          if (
+            this.serverPingToastId !== null &&
+            typeof updateNotification === 'function' &&
+            typeof removeNotification === 'function'
+          ) {
             updateNotification(this.serverPingToastId, {
               type: 'success',
               message: 'Connected to server.',
             });
-  
             setTimeout(() => {
               removeNotification(this.serverPingToastId);
               this.serverPingToastId = null;
             }, 2000);
           }
         }
-  
         if (isOnline && this.useLocalMode) {
           this.useLocalMode = false;
           this.notifyAll();
@@ -79,10 +80,8 @@ class DataService {
         if (this.serverStatus !== 'offline') {
           this.serverStatus = 'offline';
           console.warn('[Connection] Server is OFFLINE');
-  
           this.useLocalMode = true;
           this.notifyAll();
-  
           if (typeof addNotification === 'function') {
             this.serverPingToastId = addNotification({
               id: 'server-connection',
@@ -94,25 +93,8 @@ class DataService {
         }
       }
     };
-  
     pingServer();
     this.connectionInterval = setInterval(pingServer, 5000);
-  }  
-
-  async checkProxyAvailability() {
-    try {
-      const response = await fetch(URL + ':5000/api/ping');
-      if (response.ok) {
-        this.useLocalMode = false;
-        console.log("Proxy available, using remote API.");
-      } else {
-        throw new Error("Proxy ping failed.");
-      }
-    } catch (error) {
-      console.warn("Proxy not available, switching to local mode:", error.message);
-      this.useLocalMode = true;
-    }
-    this.notifyAll();
   }
 
   updateAllPlantsSensors() {
@@ -162,7 +144,7 @@ class DataService {
 
   getServerStatus() {
     return this.serverStatus;
-  }  
+  }
 
   // -----------------------
   // AUTH METHODS
@@ -172,17 +154,18 @@ class DataService {
       return { success: false, errorMessage: 'Login not available in Guest Mode.' };
     }
     try {
-      const response = await fetch(URL + ':5000/api/login', {
+      const response = await fetch(`${BASE_URL}/api/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: JSON.stringify({ email, password }),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         return { success: false, errorMessage: errorData.message || 'Login failed' };
       }
-
       const data = await response.json();
       if (data.success) {
         this.currentUserId = data.uid;
@@ -202,17 +185,18 @@ class DataService {
       return { success: false, errorMessage: 'Signup not available in Guest Mode.' };
     }
     try {
-      const response = await fetch(URL + ':5000/api/signup', {
+      const response = await fetch(`${BASE_URL}/api/signup`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: JSON.stringify({ email, password }),
       });
-
       if (!response.ok) {
         const errorData = await response.json();
         return { success: false, errorMessage: errorData.message || 'Sign up failed' };
       }
-
       const data = await response.json();
       if (data.success) {
         this.currentUserId = data.uid;
@@ -269,13 +253,11 @@ class DataService {
       if (!detail) {
         throw new Error(`Local plant data not found for alias: ${alias}`);
       }
-    
       const newPlant = this.buildLocalPlant(detail, nickname);
       this.plants.push(newPlant);
       this.notifyAll();
       return newPlant;
     }
-    
     let detail;
     if (this.useLocalMode) {
       console.log("Using local mode to fetch plant details.");
@@ -288,12 +270,14 @@ class DataService {
     } else {
       try {
         const response = await fetch(
-          URL + `:5000/api/plantByAlias?alias=${encodeURIComponent(alias)}`
+          `${BASE_URL}/api/plantByAlias?alias=${encodeURIComponent(alias)}`,
+          { headers: { 'ngrok-skip-browser-warning': 'true' } }
         );
         if (!response.ok) {
           throw new Error(`Error fetching plant details: ${response.statusText}`);
         }
         detail = await response.json();
+        console.log('[DEBUG] detail from server:', detail);
       } catch (error) {
         console.error("Error fetching from proxy, falling back to local mode.", error);
         this.useLocalMode = true;
@@ -305,7 +289,6 @@ class DataService {
         }
       }
     }
-  
     const newPlant = {
       id: Date.now(),
       name: nickname || detail.display_pid,
@@ -333,16 +316,20 @@ class DataService {
         soilMoisture: 50,
         light: 300,
       },
-    };
-  
+    };    
     if (this.currentUserId) {
       try {
-        const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(newPlant),
-        });
-  
+        const response = await fetch(
+          `${BASE_URL}/api/userPlants/${this.currentUserId}`, 
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
+            },
+            body: JSON.stringify(newPlant),
+          }
+        );
         const result = await response.json();
         if (!result.success) {
           console.warn("Failed to save plant to Firestore:", result.message);
@@ -353,22 +340,25 @@ class DataService {
         console.error("Error saving plant to Firestore:", err);
       }
     }
-  
     await this.fetchUserPlants();
     return newPlant;
-  }  
+  }
 
   async removePlant(id) {
     if (this.guestMode) {
-      this.plants = this.plants.filter(p => p.id !== id);
+      this.plants = this.plants.filter((p) => p.id !== id);
       this.notifyAll();
       return;
     }
     if (this.currentUserId) {
       try {
-        const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}/${id}`, {
-          method: 'DELETE',
-        });
+        const response = await fetch(
+          `${BASE_URL}/api/userPlants/${this.currentUserId}/${id}`,
+          {
+            method: 'DELETE',
+            headers: { 'ngrok-skip-browser-warning': 'true' },
+          }
+        );
         const result = await response.json();
         if (!result.success) {
           console.warn("Failed to delete plant from Firestore:", result.message);
@@ -379,9 +369,8 @@ class DataService {
         console.error("Error deleting plant from Firestore:", err);
       }
     }
-    
     await this.fetchUserPlants();
-  }  
+  }
 
   async fetchUserPlants() {
     if (this.guestMode) return;
@@ -389,11 +378,12 @@ class DataService {
       console.warn("No user ID set. Cannot fetch plants.");
       return;
     }
-  
     try {
-      const response = await fetch(URL + `:5000/api/userPlants/${this.currentUserId}`);
+      const response = await fetch(
+        `${BASE_URL}/api/userPlants/${this.currentUserId}`,
+        { headers: { 'ngrok-skip-browser-warning': 'true' } }
+      );
       const data = await response.json();
-  
       if (data.success) {
         this.plants = data.plants;
         this.notifyAll();
@@ -407,13 +397,16 @@ class DataService {
   }
 
   async resetPassword(email) {
+    // If you want to handle this via the same Node server:
     try {
-      const response = await fetch('http://localhost:5000/api/resetPassword', {
+      const response = await fetch(`${BASE_URL}/api/resetPassword`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
         body: JSON.stringify({ email }),
       });
-  
       const data = await response.json();
       return data;
     } catch (error) {
@@ -439,11 +432,8 @@ class DataService {
     this.currentUserId = null;
     this.serverStatus = 'unknown';
     this.serverPingToastId = null;
-  
     console.log('[DataService] Reset complete.');
   }
-  
-
 }
 
 let dataService = new DataService();

@@ -745,3 +745,48 @@ body {
   border: 1px solid #ccc;
   border-radius: 4px;
 }
+
+.account-info {
+  background-color: #f9f9f9;
+  padding: 15px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  text-align: left;
+  line-height: 1.5;
+  border: 1px solid #ddd;
+}
+
+.account-info p {
+  margin: 0.5em 0;
+}
+
+.account-section {
+  margin-bottom: 20px;
+}
+
+.account-section h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.account-section input {
+  padding: 8px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.account-section button {
+  padding: 8px 15px;
+  border: none;
+  color: #fff;
+  background-color: #2e7d32;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.account-section button:hover {
+  background-color: #1b5e20;
+}
