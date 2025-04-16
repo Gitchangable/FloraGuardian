@@ -27,7 +27,7 @@ class DataService {
       if (this.currentUserId) {
         this.fetchUserPlants();
       }
-    }, 10000);
+    }, 20000);
   }
 
   setGuestMode(isGuest) {
