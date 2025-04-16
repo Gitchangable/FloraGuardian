@@ -1,51 +1,45 @@
-// src/components/AccountPanel.js
 import React, { useState, useEffect } from 'react';
 import dataService from './DataService';
 import { useNotification } from './NotificationContext';
 
+const BASE_URL = "https://supreme-tomcat-heartily.ngrok-free.app";
+
 export default function AccountPanel() {
   const { addNotification } = useNotification();
+  
   const uid = dataService.currentUserId;
   const isGuest = dataService.isGuestMode();
 
-  // This holds the user's Firestore profile (email, randomNumber, etc.)
-  const [accountInfo, setAccountInfo] = useState(null);
+  const [userData, setUserData] = useState(null);
 
-  // These track form values for changing email/password
   const [newEmail, setNewEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
 
-  // Use the same ngrok URL as in DataService
-  const BASE_URL = 'https://supreme-tomcat-heartily.ngrok-free.app';
-
-  // -----------------------------
-  // Fetch the user’s profile info
-  // -----------------------------
   useEffect(() => {
-    if (!uid || isGuest) return; // No need to fetch if no user or in guest mode
-
-    const fetchAccountInfo = async () => {
-      try {
-        const response = await fetch(`${BASE_URL}/api/account/${uid}`, {
-          headers: { 'ngrok-skip-browser-warning': 'true' },
-        });
-        const result = await response.json();
-        if (result.success) {
-          setAccountInfo(result.profile);
-        } else {
-          addNotification({ type: 'error', message: result.message || 'Failed to fetch account info.' });
-        }
-      } catch (err) {
-        addNotification({ type: 'error', message: 'Error fetching account info.' });
-      }
-    };
-
+    if (!uid || isGuest) return;
     fetchAccountInfo();
-  }, [uid, isGuest, addNotification, BASE_URL]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uid, isGuest]);
 
-  // -----------------------------
-  // Change Email
-  // -----------------------------
+  async function fetchAccountInfo() {
+    try {
+      const response = await fetch(`${BASE_URL}/api/account/${uid}`, {
+        headers: { 'ngrok-skip-browser-warning': 'true' },
+      });
+      if (!response.ok) {
+        throw new Error('Failed to load user account info');
+      }
+      const data = await response.json();
+      if (data.success) {
+        setUserData(data.user);
+      } else {
+        addNotification({ type: 'error', message: data.message || 'Could not fetch account data.' });
+      }
+    } catch (err) {
+      addNotification({ type: 'error', message: 'Error fetching account info.' });
+    }
+  }
+
   const handleChangeEmail = async () => {
     if (!newEmail) {
       addNotification({ type: 'warning', message: 'Please enter a new email address.' });
@@ -63,24 +57,20 @@ export default function AccountPanel() {
       const result = await response.json();
       if (result.success) {
         addNotification({ type: 'success', message: 'Email updated successfully.' });
-        setNewEmail('');
+        fetchAccountInfo();
       } else {
-        addNotification({ type: 'error', message: result.message });
+        addNotification({ type: 'error', message: result.message || 'Failed to update email.' });
       }
     } catch (err) {
       addNotification({ type: 'error', message: 'Error updating email.' });
     }
   };
 
-  // -----------------------------
-  // Change Password
-  // -----------------------------
   const handleChangePassword = async () => {
     if (!newPassword) {
       addNotification({ type: 'warning', message: 'Please enter a new password.' });
       return;
     }
-
     try {
       const response = await fetch(`${BASE_URL}/api/account/password`, {
         method: 'PUT',
@@ -93,18 +83,14 @@ export default function AccountPanel() {
       const result = await response.json();
       if (result.success) {
         addNotification({ type: 'success', message: 'Password updated successfully.' });
-        setNewPassword('');
       } else {
-        addNotification({ type: 'error', message: result.message });
+        addNotification({ type: 'error', message: result.message || 'Failed to update password.' });
       }
     } catch (err) {
       addNotification({ type: 'error', message: 'Error updating password.' });
     }
   };
 
-  // -----------------------------
-  // Delete Account
-  // -----------------------------
   const handleDeleteAccount = async () => {
     const confirmDelete = window.confirm(
       'Are you sure you want to delete your account? This action is irreversible.'
@@ -119,35 +105,35 @@ export default function AccountPanel() {
       const result = await response.json();
       if (result.success) {
         addNotification({ type: 'success', message: 'Account deleted successfully.' });
-        // Possibly trigger a logout or redirect here
+        // TODO: logout
+        // window.location.reload() or dataService.reset()
       } else {
-        addNotification({ type: 'error', message: result.message });
+        addNotification({ type: 'error', message: result.message || 'Failed to delete account.' });
       }
     } catch (err) {
       addNotification({ type: 'error', message: 'Error deleting account.' });
     }
   };
 
+  function formatCreationDate(isoString) {
+    if (!isoString) return '';
+    return new Date(isoString).toLocaleString();
+  }
+
   return (
     <div className="account-container">
       <h2 className="section-title">Account Settings</h2>
 
-      {/* If Guest Mode, disable everything */}
       {isGuest && (
         <div style={{ marginBottom: '20px', color: '#555' }}>
           You are in guest mode. Account modifications are disabled.
         </div>
       )}
 
-      {/* Show Current Account Info */}
-      {accountInfo && (
+      {!isGuest && userData && (
         <div className="account-info">
-          <p><strong>Current Email:</strong> {accountInfo.email}</p>
-          <p><strong>Example Data:</strong> {accountInfo.exampleData}</p>
-          <p><strong>Random Number:</strong> {accountInfo.randomNumber}</p>
-          {accountInfo.createdAt && (
-            <p><strong>Joined On:</strong> {new Date(accountInfo.createdAt).toLocaleString()}</p>
-          )}
+          <p><strong>Current Email:</strong> {userData.email}</p>
+          <p><strong>Account Created:</strong> {formatCreationDate(userData.createdAt)}</p>
         </div>
       )}
 
@@ -159,8 +145,9 @@ export default function AccountPanel() {
           value={newEmail}
           onChange={(e) => setNewEmail(e.target.value)}
           disabled={isGuest}
+          className="account-input"
         />
-        <button onClick={handleChangeEmail} disabled={isGuest}>
+        <button onClick={handleChangeEmail} disabled={isGuest} className="account-btn">
           Update Email
         </button>
       </div>
@@ -173,8 +160,9 @@ export default function AccountPanel() {
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
           disabled={isGuest}
+          className="account-input"
         />
-        <button onClick={handleChangePassword} disabled={isGuest}>
+        <button onClick={handleChangePassword} disabled={isGuest} className="account-btn">
           Update Password
         </button>
       </div>
@@ -184,14 +172,7 @@ export default function AccountPanel() {
         <button
           onClick={handleDeleteAccount}
           disabled={isGuest}
-          style={{
-            backgroundColor: '#f44336',
-            color: '#fff',
-            padding: '10px 15px',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: isGuest ? 'not-allowed' : 'pointer',
-          }}
+          className="account-delete-btn"
         >
           Delete Account
         </button>

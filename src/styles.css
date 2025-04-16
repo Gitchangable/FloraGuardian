@@ -731,33 +731,23 @@ body {
   color: #333;
 }
 
+/* Account Panel */
+
 .account-container {
   padding: 20px;
 }
 
-.account-section {
-  margin-bottom: 20px;
-}
-
-.account-section input {
-  padding: 8px;
-  margin-right: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
 .account-info {
-  background-color: #f9f9f9;
+  background: #f3f3f3;
   padding: 15px;
-  border-radius: 6px;
   margin-bottom: 20px;
-  text-align: left;
-  line-height: 1.5;
-  border: 1px solid #ddd;
+  border-radius: 6px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+  font-size: 0.95rem;
 }
 
 .account-info p {
-  margin: 0.5em 0;
+  margin: 8px 0;
 }
 
 .account-section {
@@ -765,28 +755,49 @@ body {
 }
 
 .account-section h3 {
-  margin-top: 0;
-  margin-bottom: 10px;
+  margin: 0 0 8px;
   font-size: 1.1rem;
+  color: #444;
 }
 
-.account-section input {
+.account-input {
   padding: 8px;
   margin-right: 10px;
   border: 1px solid #ccc;
   border-radius: 4px;
+  width: 220px;
+  transition: border-color 0.2s ease;
 }
 
-.account-section button {
-  padding: 8px 15px;
-  border: none;
+.account-input:focus {
+  border-color: #2e7d32;
+  outline: none;
+}
+
+.account-btn {
+  background: #2e7d32;
   color: #fff;
-  background-color: #2e7d32;
+  border: none;
+  padding: 8px 12px;
   border-radius: 4px;
   cursor: pointer;
   transition: background 0.3s ease;
 }
 
-.account-section button:hover {
-  background-color: #1b5e20;
+.account-btn:hover {
+  background: #1b5e20;
+}
+
+.account-delete-btn {
+  background: #f44336;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.account-delete-btn:hover {
+  background: #d32f2f;
 }
