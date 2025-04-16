@@ -21,7 +21,7 @@ class DataService {
     
     this.interval = setInterval(() => {
       this.updateAllPlantsSensors();
-    }, 1000);
+    }, 5000);
 
     this.syncInterval = setInterval(() => {
       if (this.currentUserId) {
