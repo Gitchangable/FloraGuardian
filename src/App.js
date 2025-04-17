@@ -9,7 +9,7 @@ import MainMenu from './components/MainMenu';
 import './styles.css';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true); //Change to false when login function has been implemented
+  const [isAuthenticated, setIsAuthenticated] = useState(false); //Change to false when login function has been implemented
   const [currentTab, setCurrentTab] = useState('main');
 
   const renderTab = () => {

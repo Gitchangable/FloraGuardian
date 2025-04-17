@@ -83,7 +83,7 @@ class DataService {
   // Adds a new plant by first checking if the proxy is available.
   // If yes, it fetches plant details from the proxy.
   // Otherwise, it falls back to localPlantData.
-  async addPlant({ alias, nickname }) {
+  async addPlant({ alias, nickname, potId = 0 }) {
     let detail;
     if (this.useLocalMode) {
       console.log("Using local mode to fetch plant details.");
@@ -113,11 +113,11 @@ class DataService {
         }
       }
     }
-
-    // Construct the new plant object.
+  
     const newPlant = {
       id: Date.now(),
       name: nickname || detail.display_pid,
+      potId: potId, 
       apiData: {
         officialName: detail.display_pid,
         alias: detail.alias,
@@ -143,12 +143,12 @@ class DataService {
         light: 300,
       },
     };
-
+  
     this.plants.push(newPlant);
     this.notifyAll();
     return newPlant;
   }
-
+  
   destroy() {
     clearInterval(this.interval);
     this.listeners = [];

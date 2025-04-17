@@ -189,9 +189,65 @@ html, body {
   height: 100px;
 }
 
-/* Plant Profile (Detailed Overview) */
 .plant-profile-container {
-  padding: 10px;
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 2rem;
+  margin-bottom: 20px;
+}
+
+.section-card {
+  background: #f9f9f9;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 30px;
+}
+
+.add-plant-form {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 15px;
+}
+
+.add-plant-form input {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.btn {
+  cursor: pointer;
+  padding: 8px 14px;
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: 0.3s;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+}
+
+.btn:hover {
+  background-color: #45a049;
+}
+
+.remove-btn {
+  background: transparent;
+  color: #FF5733;
+  border: 1px solid #FF5733;
+  margin-top: 10px;
+}
+
+.remove-btn:hover {
+  background: #FF5733;
+  color: white;
 }
 
 .detailed-plant-list {
@@ -206,7 +262,18 @@ html, body {
   border-radius: 10px;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   padding: 15px;
-  animation: fadeIn 0.5s ease-out;
+  animation: fadeInSlide 0.4s ease-out;
+}
+
+@keyframes fadeInSlide {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .plant-image-container {
@@ -237,52 +304,46 @@ html, body {
   text-align: left;
 }
 
+.plant-api-details {
+  background-color: #f1f8f5;
+  padding: 10px;
+  border-left: 4px solid #B3E8B3;
+  border-radius: 6px;
+  margin-top: 10px;
+}
+
 .plant-api-details p {
   margin: 4px 0;
 }
 
-.remove-btn {
-  background: #FF5733;
-  color: #fff;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 4px;
-  cursor: pointer;
+.empty-state {
+  color: #888;
+  text-align: center;
+  font-style: italic;
   margin-top: 10px;
-  transition: background 0.3s ease;
 }
 
-.remove-btn:hover {
-  background: #e04a24;
+/* Responsive tweaks */
+@media (max-width: 768px) {
+  .detailed-plant-card {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .plant-image-container {
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .plant-info {
+    text-align: center;
+  }
 }
 
-/* Add Plant Form */
-.add-plant-form {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 15px;
-}
 
-.add-plant-form input {
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
-.btn {
-  cursor: pointer;
-  padding: 8px 14px;
-  border-radius: 4px;
-  border: 2px solid #444;
-  font-size: 1rem;
-  transition: 0.3s;
-  background-color: #eee;
-}
 
-.btn:hover {
-  background-color: #ddd;
-}
 
 /* Notification Panel */
 .notification-container {
